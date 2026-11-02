@@ -1,5 +1,7 @@
 # restorecheck
 
+[![CI](https://github.com/SemanurOrhan/restorecheck/actions/workflows/ci.yml/badge.svg)](https://github.com/SemanurOrhan/restorecheck/actions/workflows/ci.yml)
+
 Most teams back up their Postgres database with `pg_dump` and never actually restore it until
 the day they need to — by which point they find out the backup is empty, corrupt, or missing a
 table. `pg_verifybackup` only checks file integrity, and tools like Probavi focus on
@@ -29,7 +31,11 @@ restorecheck --config config.yaml --save-baseline
 restorecheck --config config.yaml
 ```
 
-Exit code is `0` on pass, `1` on a failed check — wire it into cron:
+A run **fails** (exit code `1`) if the dump cannot be restored at all (truncated/corrupt custom
+dump, or any failing statement in a plain `.sql` dump), a table's row count drifts past the
+threshold, or a canary query is out of range. Restore failures are reported like any other
+failure (JSON `error` field + Slack message), not as a crash. Exit code is `0` on pass — wire it
+into cron:
 
 ```cron
 0 3 * * * cd /opt/restorecheck && restorecheck --config config.yaml >> /var/log/restorecheck.log 2>&1
@@ -55,5 +61,10 @@ Deliberately narrow:
 
 ```bash
 pip install -e ".[dev]"
-pytest
+ruff check .
+pytest -m "not integration"   # fast unit tests, no Docker needed
+pytest -m integration         # real restores in Docker (needs a running Docker daemon)
 ```
+
+The throwaway containers are started with the label `restorecheck=1` and published on
+`127.0.0.1` only; `docker ps -a --filter label=restorecheck` shows any that were left behind.

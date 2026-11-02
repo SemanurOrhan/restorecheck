@@ -4,7 +4,7 @@ from .config import Canary
 
 
 def connect(port: int, password: str, db_name: str):
-    import psycopg  # imported lazily so pure-logic functions below stay test-friendly
+    import psycopg
 
     return psycopg.connect(
         host="localhost", port=port, user="postgres", password=password, dbname=db_name

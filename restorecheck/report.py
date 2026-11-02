@@ -11,6 +11,7 @@ class CheckResult:
     row_count_issues: list[str]
     canary_results: list[dict]
     row_counts: dict[str, int]
+    error: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -21,6 +22,9 @@ def to_json(result: CheckResult) -> str:
 def to_slack_summary(result: CheckResult, dump_path: str) -> str:
     status = "PASSED" if result.passed else "FAILED"
     lines = [f"*Restore check {status}* for `{dump_path}`"]
+
+    if result.error:
+        lines.append(f"Restore error: {result.error}")
 
     if result.row_count_issues:
         lines.append("Row count issues:")
