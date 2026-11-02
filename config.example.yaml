@@ -1,0 +1,23 @@
+# restorecheck configuration example
+dump_path: /backups/nightly/orders-db.dump
+dump_format: custom  # "custom" (pg_dump -Fc) or "plain" (pg_dump -Fp / plain .sql)
+
+docker_image: postgres:16
+db_name: restorecheck
+db_password: restorecheck
+
+baseline_path: ./baseline.json
+row_count_threshold_pct: 10.0
+
+canaries:
+  - name: recent_orders_exist
+    sql: "SELECT count(*) FROM orders WHERE created_at > now() - interval '1 day'"
+    expect_min: 1
+  - name: no_orphan_payments
+    sql: >
+      SELECT count(*) FROM payments p
+      LEFT JOIN orders o ON p.order_id = o.id
+      WHERE o.id IS NULL
+    expect_max: 0
+
+slack_webhook_url: null  # e.g. https://hooks.slack.com/services/...
