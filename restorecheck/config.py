@@ -16,7 +16,7 @@ class Canary:
 @dataclass
 class Config:
     dump_path: str
-    dump_format: str = "custom"  # "custom" (pg_dump -Fc) or "plain" (pg_dump -Fp)
+    dump_format: str = "custom"
     docker_image: str = "postgres:16"
     db_name: str = "restorecheck"
     db_password: str = "restorecheck"
